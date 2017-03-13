@@ -1,24 +1,31 @@
-# This is a template for a Python scraper on morph.io (https://morph.io)
-# including some code snippets below that you should find helpful
+import requests
+import boto3
+import os, json
 
-# import scraperwiki
-# import lxml.html
-#
-# # Read in a page
-# html = scraperwiki.scrape("http://foo.com")
-#
-# # Find something on the page using css selectors
-# root = lxml.html.fromstring(html)
-# root.cssselect("div[align='left']")
-#
-# # Write out to the sqlite database using scraperwiki library
-# scraperwiki.sqlite.save(unique_keys=['name'], data={"name": "susan", "occupation": "software developer"})
-#
-# # An arbitrary query against the database
-# scraperwiki.sql.select("* from data where 'name'='peter'")
+r = requests.get('http://www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=50')
 
-# You don't have to do things with the ScraperWiki and lxml libraries.
-# You can use whatever libraries you want: https://morph.io/documentation/python
-# All that matters is that your final data is written to an SQLite database
-# called "data.sqlite" in the current working directory which has at least a table
-# called "data".
+feed = r.json()
+articles = []
+
+for article in feed:
+    articles.append({'node': article})
+
+data = {
+    'nodes': articles,
+    'tags' : []
+}
+
+
+s3 = boto3.client(
+    's3',
+    aws_access_key_id=os.environ['MORPH_AWS_ACCESS_KEY'],
+    aws_secret_access_key=os.environ['MORPH_AWS_SECRET_KEY'],
+    region_name='eu-west-1'
+)
+
+s3.put_object(
+    Bucket='cfa-healthtools-ke',
+    ACL='public-read',
+    Key='starhealth-news.json',
+    Body=json.dumps(data)
+)
