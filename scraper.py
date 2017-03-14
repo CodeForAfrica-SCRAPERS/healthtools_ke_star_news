@@ -53,3 +53,5 @@ s3.put_object(
     Key='starhealth-news.json',
     Body=json.dumps(data)
 )
+
+print "Successfully finished."
