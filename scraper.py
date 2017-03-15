@@ -12,6 +12,14 @@ nlu = watson_developer_cloud.NaturalLanguageUnderstandingV1(
     username=os.environ['MORPH_WATSON_USERNAME'],
     password=os.environ['MORPH_WATSON_PASSWORD'])
 
+s3 = boto3.client(
+    's3',
+    aws_access_key_id=os.environ['MORPH_AWS_ACCESS_KEY'],
+    aws_secret_access_key=os.environ['MORPH_AWS_SECRET_KEY'],
+    region_name='eu-west-1'
+)
+
+
 r = requests.get('http://www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=50')
 
 feed = r.json()
@@ -39,19 +47,32 @@ data = {
     'tags' : []
 }
 
-
-s3 = boto3.client(
-    's3',
-    aws_access_key_id=os.environ['MORPH_AWS_ACCESS_KEY'],
-    aws_secret_access_key=os.environ['MORPH_AWS_SECRET_KEY'],
-    region_name='eu-west-1'
-)
-
 s3.put_object(
     Bucket='cfa-healthtools-ke',
     ACL='public-read',
     Key='starhealth-news.json',
     Body=json.dumps(data)
 )
+
+
+r = requests.get('http://www.the-star.co.ke/taxonomy/term/all/rss.xml')
+
+s3.put_object(
+    Bucket='cfa-healthtools-ke',
+    ACL='public-read',
+    Key='starhealth-latest.xml',
+    Body=r.text
+)
+
+
+r = requests.get('http://www.the-star.co.ke/classifieds/api/html/GetPopularSearches?maxResults=10')
+
+s3.put_object(
+    Bucket='cfa-healthtools-ke',
+    ACL='public-read',
+    Key='starhealth-classifieds.html',
+    Body=r.text
+)
+
 
 print "Successfully finished."
