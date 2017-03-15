@@ -55,7 +55,7 @@ s3.put_object(
 )
 
 
-r = requests.get('http://www.the-star.co.ke/taxonomy/term/all/rss.xml')
+r = requests.get('http://www.the-star.co.ke/news-feed.xml')
 
 s3.put_object(
     Bucket='cfa-healthtools-ke',
