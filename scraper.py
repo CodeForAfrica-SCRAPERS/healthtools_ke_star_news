@@ -1,6 +1,7 @@
 import requests
 import boto3
-import os, json
+import os
+import json
 
 import sys
 
@@ -25,17 +26,24 @@ r = requests.get('http://www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=
 feed = r.json()
 articles = []
 
+watson_failed = False
+
 for article in feed:
     tags = []
     tags_weighted = []
 
-    response = nlu.analyze(
-        text=article['body'],
-        features=[features.Concepts()])
+    if not watson_failed:
+        try:
+            response = nlu.analyze(
+                text=article['body'],
+                features=[features.Concepts()])
+            for concept in response['concepts'][:5]:
+                tags.append(concept['text'])
+                tags_weighted.append({concept['text']: concept['relevance']})
 
-    for concept in response['concepts'][:5]:
-        tags.append(concept['text'])
-        tags_weighted.append({concept['text']: concept['relevance']})
+        except Exception as e:
+            print(e)
+            watson_failed = True
 
     article['sorted_tags'] = list(set(tags))
     article['theme'] = tags_weighted
@@ -44,7 +52,7 @@ for article in feed:
 
 data = {
     'nodes': articles,
-    'tags' : []
+    'tags': []
 }
 
 s3.put_object(
