@@ -8,10 +8,12 @@ import sys
 import watson_developer_cloud
 import watson_developer_cloud.natural_language_understanding.features.v1 as features
 
-nlu = watson_developer_cloud.NaturalLanguageUnderstandingV1(
+'''nlu = watson_developer_cloud.NaturalLanguageUnderstandingV1(
     version='2017-02-27',
     username=os.environ['MORPH_WATSON_USERNAME'],
-    password=os.environ['MORPH_WATSON_PASSWORD'])
+    password=os.environ['MORPH_WATSON_PASSWORD'])'''
+
+print("[SCRAPER] Started scraper.")
 
 s3 = boto3.client(
     's3',
@@ -23,10 +25,12 @@ s3 = boto3.client(
 
 r = requests.get('http://www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=50')
 
+print("[SCRAPER] The Star stories downloaded successfully(?).")
+
 feed = r.json()
 articles = []
 
-watson_failed = False
+watson_failed = True
 
 for article in feed:
     tags = []
